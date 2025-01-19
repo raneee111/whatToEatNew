@@ -6,6 +6,6 @@ const nextConfig = {
   },
   basePath: '/whattoeat',
   assetPrefix: '/whattoeat',
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
