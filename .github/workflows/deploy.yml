@@ -9,22 +9,29 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      
-      - name: Setup Node
-        uses: actions/setup-node@v2
+      # Step 1: Check out the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Node.js with a compatible version
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: '16'
-          
-      - name: Install dependencies
+          node-version: '20' # Updated to use a compatible Node.js version
+          cache: 'npm'       # Cache dependencies for faster builds
+
+      # Step 3: Install dependencies
+      - name: Install Dependencies
         run: npm ci
-        
+
+      # Step 4: Build and Export the project
       - name: Build and Export
         run: npm run build && npm run export
         env:
           NEXT_PUBLIC_UNSPLASH_ACCESS_KEY: ${{ secrets.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY }}
-          
-      - name: Deploy
+
+      # Step 5: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
