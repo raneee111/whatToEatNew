@@ -11,19 +11,19 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18'  # Use a version compatible with Next.js
+          node-version: '18'
 
       - name: Install dependencies
         run: npm ci
 
       - name: Build
-        run: npm run build  # No need for `next export` here as it's handled by the build process
+        run: npm run build
 
-      - name: Deploy
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out  # Output directory
+          github_token: ${{ secrets.GITHUB_TOKEN }} 
+          publish_dir: ./out
