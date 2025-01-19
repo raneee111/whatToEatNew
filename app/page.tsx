@@ -7,7 +7,28 @@ import { RefreshCw, Leaf, Search, ImageOff } from 'lucide-react';
 // Use environment variable for API key
 const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
 
-const meals = {
+// Define the type for meal structure
+interface Meal {
+  name: string;
+  query: string;
+}
+
+// Define the type for each meal time category (morning, lunch, dinner)
+interface MealTime {
+  regular: Meal[];
+  vegetarian: Meal[];
+  vegan: Meal[];
+}
+
+// Define the structure of the meals object
+interface Meals {
+  morning: MealTime;
+  lunch: MealTime;
+  dinner: MealTime;
+}
+
+// Meals object with types applied
+const meals: Meals = {
   morning: {
     regular: [
       { name: 'Omelette', query: 'omelette breakfast' },
@@ -47,10 +68,10 @@ const meals = {
 };
 
 const WhatToEat = () => {
-  const [selectedMealTime, setSelectedMealTime] = useState(null);
-  const [currentMeal, setCurrentMeal] = useState(null);
-  const [dietaryPreference, setDietaryPreference] = useState('regular');
-  const [mealImage, setMealImage] = useState(null);
+  const [selectedMealTime, setSelectedMealTime] = useState<string | null>(null);
+  const [currentMeal, setCurrentMeal] = useState<Meal | null>(null);
+  const [dietaryPreference, setDietaryPreference] = useState<'regular' | 'vegetarian' | 'vegan'>('regular');
+  const [mealImage, setMealImage] = useState<string | null>(null);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -78,19 +99,19 @@ const WhatToEat = () => {
   };
 
   // Function to handle dietary preference change
-  const handleDietaryChange = (pref: string) => {
+  const handleDietaryChange = (pref: 'regular' | 'vegetarian' | 'vegan') => {
     setDietaryPreference(pref);
   };
 
   // Function to handle meal time selection with error checking
   const handleMealTimeSelect = (mealTime: string) => {
     if (
-      meals[mealTime] &&
-      meals[mealTime][dietaryPreference] &&
-      meals[mealTime][dietaryPreference].length > 0
+      meals[mealTime as keyof Meals] &&
+      meals[mealTime as keyof Meals][dietaryPreference] &&
+      meals[mealTime as keyof Meals][dietaryPreference].length > 0
     ) {
       setSelectedMealTime(mealTime);
-      setCurrentMeal(meals[mealTime][dietaryPreference][0]); // Pick the first meal as default
+      setCurrentMeal(meals[mealTime as keyof Meals][dietaryPreference][0]); // Pick the first meal as default
     } else {
       console.error(`Invalid meal time or dietary preference: ${mealTime} / ${dietaryPreference}`);
       setCurrentMeal(null); // Handle invalid selection
@@ -99,8 +120,8 @@ const WhatToEat = () => {
 
   // Function to handle meal refresh
   const handleRefresh = () => {
-    if (selectedMealTime && meals[selectedMealTime][dietaryPreference]) {
-      setCurrentMeal(meals[selectedMealTime][dietaryPreference][Math.floor(Math.random() * meals[selectedMealTime][dietaryPreference].length)]);
+    if (selectedMealTime && meals[selectedMealTime as keyof Meals][dietaryPreference]) {
+      setCurrentMeal(meals[selectedMealTime as keyof Meals][dietaryPreference][Math.floor(Math.random() * meals[selectedMealTime as keyof Meals][dietaryPreference].length)]);
     }
   };
 
@@ -156,7 +177,7 @@ const WhatToEat = () => {
                     key={pref}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => handleDietaryChange(pref)}
+                    onClick={() => handleDietaryChange(pref as 'regular' | 'vegetarian' | 'vegan')}
                     className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
                       dietaryPreference === pref 
                         ? 'bg-blue-500 text-white' 
@@ -212,42 +233,41 @@ const WhatToEat = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-xl shadow-lg overflow-hidden"
               >
-                <div className="relative w-full h-64 bg-gray-200">
+                <div className="relative w-full h-64">
                   {isLoadingImage ? (
-                    <div className="flex items-center justify-center w-full h-full">
-                      <span className="text-xl text-gray-600">Loading...</span>
+                    <div className="absolute inset-0 flex justify-center items-center bg-gray-200">
+                      <RefreshCw className="animate-spin text-blue-500 w-8 h-8" />
                     </div>
                   ) : imageError ? (
-                    <div className="flex items-center justify-center w-full h-full">
-                      <ImageOff className="text-red-500 w-10 h-10" />
-                      <span className="text-xl text-gray-600">Image not available</span>
+                    <div className="absolute inset-0 flex justify-center items-center bg-gray-200">
+                      <ImageOff className="text-gray-500 w-8 h-8" />
                     </div>
                   ) : (
                     <img
-                      src={mealImage}
+                      src={mealImage || ''}
                       alt={currentMeal.name}
-                      className="object-cover w-full h-64"
+                      className="object-cover w-full h-full"
                     />
                   )}
                 </div>
-                <div className="p-4">
-                  <h3 className="text-xl font-semibold text-gray-800">
-                    {currentMeal.name}
-                  </h3>
-                  <p className="text-gray-600">{currentMeal.query}</p>
+
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-gray-700">{currentMeal.name}</h3>
+                  <p className="mt-2 text-gray-500">{currentMeal.query}</p>
+                </div>
+
+                <div className="p-6 flex justify-center">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleRefresh}
+                    className="bg-blue-500 text-white py-2 px-6 rounded-xl"
+                  >
+                    Refresh
+                  </motion.button>
                 </div>
               </motion.div>
             )}
-
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleRefresh}
-              className="w-full p-3 mt-6 rounded-xl bg-yellow-500 text-white font-semibold shadow-lg"
-            >
-              <RefreshCw className="inline-block mr-2 w-5 h-5" />
-              Refresh Meal
-            </motion.button>
           </motion.div>
         )}
       </div>
